@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>PLAYING GOD — 3D World Engine</title>
+<meta name="description" content="A living 3D world built on Conway's Game of Life. Tune the laws of nature, then bring earthquake, plague, flood, famine and war." />
+<link rel="stylesheet" href="./css/style.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%235ef2c4' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='16' r='3.4' fill='%235ef2c4'/%3E%3Cellipse cx='16' cy='16' rx='16' ry='5.5' fill='none' stroke='%23ffc76b' stroke-width='.9' opacity='.85'/%3E%3C/svg%3E" />
+<script type="importmap">
+{ "imports": { "three": "./js/vendor/three.module.js" } }
+</script>
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-quake" viewBox="0 0 24 24"><path d="M2 13h4l2.2-6 3.2 11 2.4-7 1.8 4H22"/></symbol>
+  <symbol id="i-plague" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></symbol>
+  <symbol id="i-fire" viewBox="0 0 24 24"><path d="M12 2.8c3.4 4 5.6 5.9 5.6 9.4a5.6 5.6 0 0 1-11.2 0c0-2.2 1-3.9 2.7-5.6.2 1.7 1 2.7 2.1 3.3 0-3.3-.6-5.3.8-7.1z"/></symbol>
+  <symbol id="i-flood" viewBox="0 0 24 24"><path d="M2 8c2.3 0 2.3-2 4.6-2s2.3 2 4.6 2 2.3-2 4.6-2S18 8 20.2 8M2 13.2c2.3 0 2.3-2 4.6-2s2.3 2 4.6 2 2.3-2 4.6-2 2.2 2 4.4 2M2 18.4c2.3 0 2.3-2 4.6-2s2.3 2 4.6 2 2.3-2 4.6-2 2.2 2 4.4 2"/></symbol>
+  <symbol id="i-famine" viewBox="0 0 24 24"><path d="M12 21V7M12 7c-3.3 0-4.4-2.1-4.4-4.3 2.4 0 4.4 1.2 4.4 4.3zm0 0c3.3 0 4.4-2.1 4.4-4.3-2.4 0-4.4 1.2-4.4 4.3zM12 13c-3.3 0-4.4-2.1-4.4-4.3 2.4 0 4.4 1.2 4.4 4.3zm0 0c3.3 0 4.4-2.1 4.4-4.3-2.4 0-4.4 1.2-4.4 4.3z"/></symbol>
+  <symbol id="i-war" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5M4.9 4.9l3.5 3.5M15.6 15.6l3.5 3.5M19.1 4.9l-3.5 3.5M8.4 15.6l-3.5 3.5"/></symbol>
+</svg>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="40" height="40">
+          <circle cx="24" cy="24" r="12.5" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+          <circle cx="24" cy="24" r="4" fill="currentColor"/>
+          <ellipse cx="24" cy="24" rx="22" ry="7.4" fill="none" stroke="#ffc76b" stroke-width="1" opacity=".8" transform="rotate(-18 24 24)"/>
+          <circle cx="43" cy="17" r="1.8" fill="#ffc76b"/>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1>PLAYING <span>GOD</span> <span class="v2-badge">V2</span></h1>
+        <p>PLANETARY LIFE ENGINE <span class="sep">/</span> TERRA-01 <span style="color:#ffc76b;font-weight:600;">· V2 · CIVILIZATIONS · DEITY ALIGNMENT</span></p>
+      </div>
+    </div>
+
+    <div class="chips" aria-live="off">
+      <div class="chip"><span class="k">GENERATION</span><b class="v" id="stat-gen">0</b></div>
+      <div class="chip chip-main"><span class="k">SOULS</span><b class="v" id="stat-souls">0</b></div>
+      <div class="chip"><span class="k">BIRTHS / GEN</span><b class="v up" id="stat-births">0</b></div>
+      <div class="chip"><span class="k">DEATHS / GEN</span><b class="v down" id="stat-deaths">0</b></div>
+      <div class="chip chip-fps"><span class="k">FPS</span><b class="v" id="stat-fps">—</b></div>
+      <div class="chip" style="border-color:#ffc76b;"><span class="k">ERA</span><b class="v" id="stat-era">NOMADIC</b></div>
+      <div class="chip" style="border-color:#ffc76b;"><span class="k">ALIGNMENT</span><b class="v" id="stat-alignment" style="color:#5ef2c4;">+80</b></div>
+      <div class="chip" style="border-color:#ffc76b;"><span class="k">WORSHIP</span><b class="v" id="stat-worship">12%</b></div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn ghost" id="btn-pause" type="button" title="Pause / resume (Space)">PAUSE</button>
+      <button class="btn ghost" id="btn-step" type="button" title="Advance one generation (S)">STEP</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="scene" aria-label="3D planet running the Game of Life"></canvas>
+
+    <div class="fx-layer" aria-hidden="true">
+      <div class="fx fx-plague"></div>
+      <div class="fx fx-war"></div>
+      <div class="fx fx-flood"></div>
+      <div class="fx fx-famine"></div>
+      <div class="fx-flash" id="fx-flash"></div>
+      <div class="vignette"></div>
+    </div>
+
+    <div class="stage-top">
+      <div class="live-pill"><i></i> LIVE SIMULATION</div>
+      <div class="orbit-hint">DRAG TO ORBIT · SCROLL TO ZOOM · CLICK TO SEED</div>
+    </div>
+
+    <div class="event-toast" id="event-toast" role="status">
+      <span class="toast-icon" id="toast-icon"></span>
+      <div class="toast-copy">
+        <b id="toast-title">EVENT</b>
+        <p id="toast-desc"></p>
+      </div>
+      <span class="toast-tag" id="toast-tag">NATURAL</span>
+    </div>
+
+    <section class="panel chronicle" aria-label="Event chronicle">
+      <div class="panel-head">
+        <span>CHRONICLE</span>
+        <span class="panel-meta" id="log-count">0 EVENTS</span>
+      </div>
+      <ul id="log-list">
+        <li class="log-empty">The world is quiet. For now.</li>
+      </ul>
+    </section>
+
+    <aside class="side">
+      <section class="panel population" aria-label="Population">
+        <div class="panel-head">
+          <span>WORLD POPULATION</span>
+          <span class="panel-meta" id="pop-delta">STABLE</span>
+        </div>
+        <div class="pop-value" id="pop-value">0</div>
+        <div class="pop-sub"><span id="pop-raw">0</span> SOULS</div>
+        <canvas id="chart" height="92"></canvas>
+        <div class="mini-grid">
+          <div><span>PEAK</span><b id="peak-value">0</b></div>
+          <div><span>LOST</span><b id="lost-value">0</b></div>
+          <div><span>EVENTS</span><b id="event-count">0</b></div>
+        </div>
+      </section>
+
+      <section class="panel active-panel" aria-label="Active events">
+        <div class="panel-head">
+          <span>ACTIVE EVENTS</span>
+          <span class="panel-meta" id="active-count">0</span>
+        </div>
+        <div id="active-list" class="active-list">
+          <p class="empty">No active disasters</p>
+        </div>
+      </section>
+
+      <section class="panel legend" aria-label="Legend">
+        <div class="legend-row"><i class="sw sw-alive"></i> LIVING CELL <span>1M SOULS</span></div>
+        <div class="legend-row"><i class="sw sw-plague"></i> INFECTED <span>HEATMAP</span></div>
+        <div class="legend-row"><i class="sw sw-fire"></i> BURNING <span>FIRE FRONT</span></div>
+        <div class="legend-row"><i class="sw sw-water"></i> SUBMERGED <span>RISING SEA</span></div>
+      </section>
+
+      <section class="panel civ-panel" aria-label="Civilization">
+        <div class="panel-head">
+          <span>CIVILIZATION ERA</span>
+          <span class="panel-meta" id="civ-era-meta">MATURE</span>
+        </div>
+        <div class="civ-era-bar">
+          <div class="civ-era-fill" id="civ-era-fill"></div>
+        </div>
+        <div class="civ-era-labels">
+          <span>Nomadic</span><span>Agricultural</span><span>Industrial</span><span>Space</span>
+        </div>
+
+        <div class="panel-head" style="margin-top:12px;">
+          <span>TEMPLES &amp; WORSHIP</span>
+          <span class="panel-meta" id="civ-worship-meta">0%</span>
+        </div>
+        <div class="civ-worship-bar">
+          <div class="civ-worship-fill" id="civ-worship-fill"></div>
+        </div>
+        <div class="civ-worship-row">
+          <span>Temples</span><b id="civ-temples">0</b>
+          <span>Defense</span><b id="civ-defense">0</b>
+        </div>
+
+        <div class="panel-head" style="margin-top:12px;">
+          <span>DEITY MOOD</span>
+          <span class="panel-meta" id="civ-mood-meta">Neutral</span>
+        </div>
+        <div class="civ-mood-bar">
+          <div class="civ-mood-fill" id="civ-mood-fill"></div>
+        </div>
+        <div class="civ-mood-label" id="civ-mood-label">The world balances.</div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="dock">
+    <div class="dock-params">
+      <div class="dock-head">
+        <span>WORLD PARAMETERS</span>
+        <small>LIVE · APPLIES INSTANTLY</small>
+      </div>
+      <div class="sliders">
+        <label class="slider" for="sl-speed">
+          <span class="sl-top"><span>SPEED</span><b id="val-speed">8.0/s</b></span>
+          <input id="sl-speed" type="range" min="1" max="30" step="0.5" value="8" data-param="speed" />
+        </label>
+        <label class="slider" for="sl-birth">
+          <span class="sl-top"><span>BIRTH</span><b id="val-birth">3</b></span>
+          <input id="sl-birth" type="range" min="1" max="6" step="1" value="3" data-param="birth" />
+        </label>
+        <label class="slider" for="sl-smin">
+          <span class="sl-top"><span>SURVIVE FROM</span><b id="val-smin">2</b></span>
+          <input id="sl-smin" type="range" min="0" max="6" step="1" value="2" data-param="surviveMin" />
+        </label>
+        <label class="slider" for="sl-smax">
+          <span class="sl-top"><span>SURVIVE TO</span><b id="val-smax">4</b></span>
+          <input id="sl-smax" type="range" min="0" max="8" step="1" value="4" data-param="surviveMax" />
+        </label>
+        <label class="slider" for="sl-mut">
+          <span class="sl-top"><span>MUTATION</span><b id="val-mut">0.03%</b></span>
+          <input id="sl-mut" type="range" min="0" max="0.5" step="0.01" value="0.03" data-param="mutation" />
+        </label>
+        <label class="slider" for="sl-disaster">
+          <span class="sl-top"><span>DISASTER RATE</span><b id="val-disaster">55</b></span>
+          <input id="sl-disaster" type="range" min="0" max="100" step="1" value="55" data-param="disaster" />
+        </label>
+        <label class="slider" for="sl-severity">
+          <span class="sl-top"><span>SEVERITY</span><b id="val-severity">55</b></span>
+          <input id="sl-severity" type="range" min="0" max="100" step="1" value="55" data-param="severity" />
+        </label>
+        <label class="slider" for="sl-war">
+          <span class="sl-top"><span>WAR RATE</span><b id="val-war">30</b></span>
+          <input id="sl-war" type="range" min="0" max="100" step="1" value="30" data-param="war" />
+        </label>
+        <label class="slider" for="sl-glow">
+          <span class="sl-top"><span>GLOW</span><b id="val-glow">82</b></span>
+          <input id="sl-glow" type="range" min="0" max="100" step="1" value="82" data-param="glow" />
+        </label>
+      </div>
+    </div>
+
+    <div class="dock-actions">
+      <div class="dock-head"><span>DIVINE INTERVENTION</span><small>MANUAL STRIKE</small></div>
+      <div class="smite-grid">
+        <button class="smite" data-smite="earthquake" type="button"><svg><use href="#i-quake"/></svg><span>QUAKE</span></button>
+        <button class="smite" data-smite="plague" type="button"><svg><use href="#i-plague"/></svg><span>PLAGUE</span></button>
+        <button class="smite" data-smite="wildfire" type="button"><svg><use href="#i-fire"/></svg><span>WILDFIRE</span></button>
+        <button class="smite" data-smite="flood" type="button"><svg><use href="#i-flood"/></svg><span>FLOOD</span></button>
+        <button class="smite" data-smite="famine" type="button"><svg><use href="#i-famine"/></svg><span>FAMINE</span></button>
+        <button class="smite" data-smite="war" type="button"><svg><use href="#i-war"/></svg><span>WAR</span></button>
+      </div>
+      <div class="divine-buttons">
+        <button class="btn divine" id="btn-blessing" type="button" title="Divine Blessing (B)"><svg><use href="#i-quake"/></svg><span>BLESSING</span></button>
+        <button class="btn divine" id="btn-rain" type="button" title="Miracle Rain (R)"><svg><use href="#i-flood"/></svg><span>RAIN</span></button>
+        <button class="btn divine" id="btn-meteor" type="button" title="Meteor Strike (M)"><svg><use href="#i-fire"/></svg><span>METEOR</span></button>
+      </div>
+      <div class="transport">
+        <button class="btn" id="btn-reseed" type="button" title="New world (R)">RESEED</button>
+        <button class="btn" id="btn-clear" type="button" title="Sterilise the world (C)">CLEAR</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<div class="boot" id="boot">
+  <div class="boot-ring"></div>
+  <p>FORMING WORLD</p>
+  <small>mapping 2,400 habitats onto a sphere</small>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
